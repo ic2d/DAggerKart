@@ -20,12 +20,17 @@ from . import game, paths
 from .data import EpisodeWriter
 from .emulator import Emulator
 from .env import RaceEnv
-from .expert import SearchExpert
+from .expert import ROOT_SLOT, SearchExpert
 
 
 def collect_episode(env, expert, state_file, rng, args, runner=None, log=print):
-    obs = env.reset(state_file)
+    # Cada comando salva o estado para o especialista no próprio último frame (ROOT_SLOT): assim a
+    # busca não altera o ritmo do jogo e a dinâmica é a mesma de quando a rede joga sozinha.
+    obs = env.reset(state_file, save=ROOT_SLOT)
     writer = EpisodeWriter({
+        # collector_version 2: estado do especialista salvo dentro do RUN (versão 1 tinha 1 frame
+        # extra sem input a cada decisão, ver lua/agent.lua).
+        "collector_version": 2,
         "state_file": str(state_file), "decision_frames": env.decision_frames,
         "bins": game.STEER_BINS.tolist(), "policy": args.policy, "beta": args.beta,
         "noise": args.noise, "expert": {"steer_frames": expert.steer_frames,
@@ -40,7 +45,7 @@ def collect_episode(env, expert, state_file, rng, args, runner=None, log=print):
     t0, last_log = time.time(), time.time()
     try:
         while not env.done:
-            scores = expert.scores()
+            scores = expert.scores(root_saved=True)
             action = expert.best(scores)
             if runner is not None:
                 policy_action, _ = runner.act(obs.frame)  # sempre: mantém o contexto da rede em dia
@@ -59,7 +64,7 @@ def collect_episode(env, expert, state_file, rng, args, runner=None, log=print):
                 noise_left = int(rng.integers(1, 6))
                 action = noise_action
             writer.add(obs.frame, action, scores, obs.state)
-            obs = env.step(action)
+            obs = env.step(action, save=ROOT_SLOT)
             if time.time() - last_log > 30:
                 last_log = time.time()
                 log("  passo %d, volta %.2f, %.2f s/passo%s" % (

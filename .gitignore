@@ -12,3 +12,4 @@ runs/
 *.v64
 *.rom
 Mupen/
+data_*/

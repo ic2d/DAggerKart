@@ -32,29 +32,32 @@ def main():
     p.add_argument("--beta-decay", type=float, default=0.5, help="beta_i = beta_decay ** i")
     p.add_argument("--arch", default="transformer", help="transformer ou pilotnet (CNN do projeto original)")
     p.add_argument("--states", nargs="*", help="savestates (padrão: todos em states/TT)")
+    p.add_argument("--device", default="cpu", help="onde a rede roda nos workers da coleta (cpu ou cuda)")
+    p.add_argument("--data-dir", help="pasta de dados (padrão: data/); útil para comparar modelos com os mesmos dados")
     p.add_argument("--skip-first-collect", action="store_true",
                    help="na iteração 0, treina com os dados que já estão em data/ sem coletar mais")
     args = p.parse_args()
 
     py = sys.executable
     base = paths.RUNS_DIR / args.name
-    states = ["--states", *args.states] if args.states else []
+    data = ["--data-dir", args.data_dir] if args.data_dir else []  # coleta e treino usam a mesma pasta
+    collect = ["--states", *args.states] if args.states else []
     for it in range(args.start, args.iterations):
         out = base / ("it%d" % it)
         if it == 0:
             if not args.skip_first_collect:
                 run([py, "-m", "nk.collect", "--workers", str(args.workers), "--episodes", str(args.first_episodes),
-                     *states])
-            run([py, "-m", "nk.train", "--out", str(out), "--epochs", str(args.epochs), "--arch", args.arch])
+                     *collect, *data])
+            run([py, "-m", "nk.train", "--out", str(out), "--epochs", str(args.epochs), "--arch", args.arch, *data])
         else:
             prev = base / ("it%d" % (it - 1)) / "model.pt"
             beta = args.beta_decay ** it
             run([py, "-m", "nk.collect", "--workers", str(args.workers), "--episodes", str(args.episodes),
-                 "--policy", str(prev), "--beta", "%.3f" % beta, *states])
+                 "--policy", str(prev), "--beta", "%.3f" % beta, "--device", args.device, *collect, *data])
             # Continua do modelo anterior com lr menor (metade do padrão da arquitetura).
             lr = "5e-5" if args.arch == "pilotnet" else "1.5e-4"
             run([py, "-m", "nk.train", "--out", str(out), "--init", str(prev), "--epochs", str(args.finetune_epochs),
-                 "--lr", lr])
+                 "--lr", lr, *data])
     print("\npronto: %s" % (base / ("it%d" % (args.iterations - 1)) / "model.pt"))
 
 

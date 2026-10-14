@@ -27,19 +27,20 @@ class RaceEnv:
         self.max_steps = int(max_seconds * game.FPS / decision_frames)
         self.done, self.reason = False, None
 
-    def reset(self, state_file, warmup_frames=2):
+    def reset(self, state_file, warmup_frames=2, save=None):
+        """`save`: slot para salvar o estado no fim (sem custo de frame; usado pelo especialista)."""
         self.emu.speed(SPEED_NORMAL)
         self.emu.load_file(state_file)
         # Alguns frames em velocidade normal para a janela mostrar o estado carregado.
-        state = self.emu.run([(warmup_frames, game.A, 0, 0)])
+        state = self.emu.run([(warmup_frames, game.A, 0, 0)], save=save)
         self.steps, self.best_progress, self.best_step = 0, state.progress, 0
         self.done, self.reason = False, None
         self.obs = Observation(self.emu.frame(), state)
         return self.obs
 
-    def step(self, steer):
+    def step(self, steer, save=None):
         self.emu.speed(SPEED_NORMAL)
-        state = self.emu.run([(self.decision_frames, game.A, game.steer_to_joystick(steer), 0)])
+        state = self.emu.run([(self.decision_frames, game.A, game.steer_to_joystick(steer), 0)], save=save)
         self.steps += 1
         if state.progress > self.best_progress + 1e-3:
             self.best_progress, self.best_step = state.progress, self.steps

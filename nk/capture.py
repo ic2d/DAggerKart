@@ -93,10 +93,14 @@ def game_rect(hwnd):
 
 
 class WindowCapture:
-    # Usa o último frame só depois que a janela "parou de mudar" por este tempo, para garantir que o
-    # frame que o emulador acabou de mostrar já chegou (o emulador fica parado esperando o Python).
+    # O frame que o emulador acabou de mostrar só chega pelo WGC depois da composição do DWM (até ~2
+    # quadros do monitor). Por isso grab() sempre espera MIN_WAIT_SECONDS e depois que a janela
+    # "pare de mudar" por SETTLE_SECONDS. Sem a espera mínima, chamadas logo após um comando pegavam
+    # o frame anterior: a rede via uma imagem atrasada no play, mas não na coleta (onde a busca do
+    # especialista cria uma pausa de ~2 s), e as duas situações ficavam diferentes.
+    MIN_WAIT_SECONDS = 0.04
     SETTLE_SECONDS = 0.012
-    MAX_WAIT_SECONDS = 0.1
+    MAX_WAIT_SECONDS = 0.15
 
     def __init__(self, hwnd):
         self.hwnd = hwnd
@@ -145,7 +149,9 @@ class WindowCapture:
             now = time.perf_counter()
             with self._lock:
                 frame, frame_time = self._frame, self._frame_time
-            if frame is not None and (now - frame_time >= self.SETTLE_SECONDS or now - start > self.MAX_WAIT_SECONDS):
+            waited = now - start
+            if frame is not None and waited >= self.MIN_WAIT_SECONDS and (
+                    now - frame_time >= self.SETTLE_SECONDS or waited > self.MAX_WAIT_SECONDS):
                 break
             if frame is None and now - start > 5:
                 raise RuntimeError("nenhum frame recebido da janela do Mupen")

@@ -112,15 +112,21 @@ end
 
 --[[ Savestates (em memória ou arquivo). Bloqueiam a corrotina até terminar. ]]--
 
-local function wait_savestate(start)
+-- O savestate é executado pelo Mupen no fim do frame atual; a corrotina espera o callback.
+-- `hold` = input a manter enquanto espera. ATENÇÃO: salvar faz o jogo andar 1 frame (o atual) antes
+-- de capturar o estado; sem `hold`, esse frame roda sem nenhum botão e muda a dinâmica do jogo.
+local function wait_savestate(start, hold)
   local done, result, data = false, nil, nil
   start(function(res, buf) done, result, data = true, res, buf end)
-  while not done do mk.frameadvance() end
+  while not done do
+    if hold ~= nil then joypad.set(hold) end
+    mk.frameadvance()
+  end
   return result, data
 end
 
-function mk.save_state()
-  local _, data = wait_savestate(function(cb) savestate.do_memory("", "save", cb, true) end)
+function mk.save_state(hold)
+  local _, data = wait_savestate(function(cb) savestate.do_memory("", "save", cb, true) end, hold)
   return data
 end
 

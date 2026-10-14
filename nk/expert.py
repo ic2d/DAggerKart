@@ -20,11 +20,16 @@ class SearchExpert:
         self.steer_frames, self.forward_frames = steer_frames, forward_frames
         self.velocity_weight = velocity_weight
 
-    def scores(self):
-        """Nota de cada ação em `bins`. Deixa o emulador exatamente no estado em que estava."""
+    def scores(self, root_saved=False):
+        """Nota de cada ação em `bins`. Deixa o emulador exatamente no estado em que estava.
+
+        O estado atual precisa estar salvo em ROOT_SLOT pelo último comando (env.step(..., save=ROOT_SLOT)),
+        porque um SAVE avulso faria o jogo andar 1 frame a mais. Sem isso (`root_saved=False`) ele
+        salva mesmo assim, mas o jogo avança 1 frame (com o último input) antes da busca."""
         emu = self.emu
         start = emu.state()
-        emu.save(ROOT_SLOT)
+        if not root_saved:
+            emu.save(ROOT_SLOT)
         emu.speed(SPEED_ULTRA)
         scores = np.empty(len(self.bins), np.float32)
         for i, steer in enumerate(self.bins):

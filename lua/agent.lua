@@ -8,9 +8,12 @@ então Python e jogo andam em lockstep (determinístico).
 Comandos:
   PING                                  -> OK
   STATE                                 -> OK <estado>
-  RUN n buttons x y [n buttons x y ...] -> OK <estado>   segure cada input por n frames
+  RUN n buttons x y [n buttons x y ...] [SAVE slot]
+                                        -> OK <estado>   segure cada input por n frames; com SAVE,
+                                                         salva o estado no último frame (sem custo)
   SPEED mode                            -> OK            0 normal, 1 fast, 2 ultra
-  SAVE slot | LOAD slot | FREE slot     -> OK            savestates em memória
+  SAVE slot | LOAD slot | FREE slot     -> OK            savestates em memória (SAVE avulso faz o
+                                                         jogo andar 1 frame; prefira RUN ... SAVE)
   SAVEFILE caminho | LOADFILE caminho   -> OK
   QUIT                                  -> OK            encerra o script
 Erros respondem "ERR <mensagem>".
@@ -69,14 +72,32 @@ function handlers.PING() return "OK" end
 
 function handlers.STATE() return "OK " .. state() end
 
+-- Último input aplicado: mantido nos frames em que o Lua espera um savestate (ver mk.lua).
+local last_input = {}
+
 function handlers.RUN(args)
-  local v = numbers(args)
-  if #v == 0 or #v % 4 ~= 0 then return "ERR RUN espera grupos de 'n buttons x y'" end
+  local inputs, save_slot = args:match("^(.-)%s*SAVE%s+(%S+)%s*$")
+  if inputs == nil then inputs = args end
+  local v = numbers(inputs)
+  if #v == 0 or #v % 4 ~= 0 then return "ERR RUN espera grupos de 'n buttons x y' [SAVE slot]" end
+  local total = 0
+  for i = 1, #v, 4 do total = total + v[i] end
+  local frame = 0
   for i = 1, #v, 4 do
     local t = input_table(v[i + 1], v[i + 2], v[i + 3])
+    last_input = t
     for _ = 1, v[i] do
-      joypad.set(t)
-      mk.frameadvance()
+      frame = frame + 1
+      if save_slot ~= nil and frame == total then
+        -- Salva no último frame, com o input da ação: o save acontece no fim deste frame e não custa
+        -- frame extra (um SAVE separado faria o jogo andar 1 frame a mais).
+        local data = mk.save_state(t)
+        if data == nil or #data == 0 then return "ERR falha ao salvar" end
+        slots[save_slot] = data
+      else
+        joypad.set(t)
+        mk.frameadvance()
+      end
     end
   end
   return "OK " .. state()
@@ -88,7 +109,9 @@ function handlers.SPEED(args)
 end
 
 function handlers.SAVE(slot)
-  local data = mk.save_state()
+  -- Atenção: um SAVE separado faz o jogo andar 1 frame (com o último input). Para salvar sem mudar
+  -- o ritmo do jogo, use "RUN ... SAVE slot".
+  local data = mk.save_state(last_input)
   if data == nil or #data == 0 then return "ERR falha ao salvar" end
   slots[slot] = data
   return "OK"

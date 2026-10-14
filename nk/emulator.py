@@ -102,14 +102,18 @@ class Emulator:
     def state(self):
         return GameState.parse(self.command("STATE"))
 
-    def run(self, segments):
-        """Executa uma sequência de inputs: [(frames, buttons, x, y), ...]. Retorna o estado no fim."""
+    def run(self, segments, save=None):
+        """Executa uma sequência de inputs: [(frames, buttons, x, y), ...]. Retorna o estado no fim.
+        `save` = slot para salvar o estado no último frame. Use isso em vez de save(): um SAVE avulso
+        faz o jogo andar 1 frame a mais, o que muda o ritmo do jogo."""
         parts = []
         for n, buttons, x, y in segments:
             if n > 0:
                 parts.append("%d %d %d %d" % (n, buttons, x, y))
         if not parts:
             return self.state()
+        if save:
+            parts.append("SAVE " + save)
         return GameState.parse(self.command("RUN " + " ".join(parts)))
 
     def speed(self, mode):
