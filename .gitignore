@@ -1,0 +1,14 @@
+__pycache__/
+.venv/
+config.json
+
+# gerados (grandes): episódios coletados e modelos treinados
+data/
+runs/
+
+# nunca versionar ROMs nem emuladores
+*.n64
+*.z64
+*.v64
+*.rom
+Mupen/

@@ -1,0 +1,4 @@
+# O PyTorch é instalado à parte (depende da sua GPU); veja o README.
+numpy
+pillow
+windows-capture
