@@ -306,9 +306,27 @@ Nas curvas fechadas o especialista pede direção total (+1,0) e a rede vira bem
 na parede e fica raspando nela, porque nunca viu essa situação nos dados. É o problema clássico da
 imitação pura, que o DAgger ataca.
 
-**DAgger com a PilotNet (14/10/2026):** ver a seção a seguir.
+**DAgger com a PilotNet (14/10/2026):** 3 iterações a partir da PilotNet acima, 6 corridas por
+iteração, com a rede dirigindo 50%, 75% e 87,5% do tempo (`runs/lr_pilot/it1..it3`). Total: 24
+corridas, ~24 mil decisões anotadas.
 
-<!-- DAGGER_RESULTS -->
+| Iteração | Corridas completas na coleta | Erro de validação | Jogando sozinha |
+|---|---|---|---|
+| it0 (só imitação) | 5/6 (especialista dirigindo) | 0,143 | presa em ~0,46 volta |
+| it1 (rede 50%) | 4/6 | 0,124 | presa em ~0,52 volta |
+| it2 (rede 75%) | 4/6 | 0,112 | — |
+| it3 (rede 87,5%) | 5/6, sem nenhum resgate | 0,114 | **3/3 corridas completas, 125,15 s** |
+
+**A rede final completa a corrida sozinha e é mais rápida que o próprio especialista** (132-137 s):
+o especialista só testa ações curtas e às vezes hesita, enquanto a rede aprendeu um traçado mais
+limpo.
+
+```bash
+.venv\Scripts\python.exe -m nk.play --policy runs\lr_pilot\it3\model.pt --state states\TT\LR.st --episodes 3
+```
+
+As corridas que ficaram presas durante a coleta pararam sempre no mesmo ponto (0,52 de uma volta):
+de frente para a parede, nem o especialista consegue sair, porque nenhuma das ações dá ré.
 
 **Próximos passos:** incluir ré/freio nas ações (o kart preso de frente para a parede não tem como
 sair só acelerando); ajuste fino por aprendizado por reforço (PPO) a partir da rede imitada, com
