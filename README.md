@@ -335,6 +335,25 @@ O pipeline completo da comparação (coleta, DAgger dos dois, avaliação) levou
 `runs/compare_v2.log`. Os dados ficam em `data_v2/` e os modelos em `runs/lr2_pilot` e
 `runs/lr2_tf` (fora do git).
 
+### Choco Mountain (15/10/2026)
+
+Mesmo protocolo, na Choco Mountain (Time Trial): 6 corridas do especialista (6/6 completas,
+132-140 s) e 3 iterações de DAgger para cada modelo. Média e melhor tempo de 3 corridas sozinho:
+
+| | **PilotNet** | | **Transformer** | |
+|---|---|---|---|---|
+| **Iteração** | **completas** | **média / melhor** | **completas** | **média / melhor** |
+| it0 (só imitação) | 1/3 | 146,1 s | 3/3 | 231,7 / 224,2 s (dirige hesitante) |
+| it1 | 3/3 | 130,4 / 129,35 s | 3/3 | 134,6 / 127,35 s |
+| it2 | 3/3 | 146,7 / 145,04 s | 3/3 | **127,6 / 125,75 s** |
+| it3 | 3/3 | 130,8 / 128,75 s | 3/3 | 128,1 / 126,35 s |
+
+**Na Choco Mountain o transformer se sai melhor**: depois do DAgger é ~3 s mais rápido por corrida
+que a PilotNet, mais consistente entre iterações (a PilotNet piorou na it2 antes de voltar na it3) e,
+já só com imitação, completa as 3 corridas, ainda que devagar. Numa pista com morros e curvas
+cegas, o contexto de 16 frames parece ajudar. Os dois terminam abaixo do especialista (132-140 s).
+Log completo: `runs/compare_cm.log`.
+
 ### Histórico: o bug do frame extra (13-14/10/2026)
 
 Nos primeiros testes, **toda rede treinada só por imitação travava** numa curva fechada em ~0,5
