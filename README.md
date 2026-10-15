@@ -18,7 +18,8 @@ da NVIDIA usada no projeto original.
 2. [Comandos](#comandos)
 3. [Como tudo funciona](#como-tudo-funciona)
 4. [Resultados](#resultados)
-5. [Solução de problemas](#solução-de-problemas)
+5. [TO DO](#to-do)
+6. [Solução de problemas](#solução-de-problemas)
 
 ---
 
@@ -182,6 +183,13 @@ Se isso funcionou, está tudo pronto. Siga para [Comandos](#comandos).
 
 # criar savestates de largada (Time Trial: qualquer pista; GP: 1ª pista de cada copa)
 .venv\Scripts\python.exe -m nk.make_state --mode TT --course LR MMF
+
+# comparação completa numa pista (especialista + DAgger dos dois modelos + avaliação), ~5-8 h;
+# anota tudo em results/races.csv
+.venv\Scripts\python.exe -m nk.compare MMF
+
+# regerar as tabelas e o gráfico de results/ a partir do CSV
+.venv\Scripts\python.exe -m nk.report
 ```
 
 Opções úteis:
@@ -195,6 +203,8 @@ Opções úteis:
 | `train` | `--arch pilotnet` | usa a CNN original em vez do transformer |
 | `train` | `--init X` | continua o treino a partir de um checkpoint |
 | `play` | `--greedy` | usa a direção mais provável em vez da média ponderada |
+| `play` | `--record` | anota cada corrida em `results/races.csv` |
+| `compare` | `--shutdown` | desliga o PC ao terminar (15 min de folga; cancelar com `shutdown /a`) |
 
 Cada treino salva em `runs/<nome>/`: `model.pt` (melhor validação), `last.pt` (última época) e
 `log.jsonl` (métricas por época). `data/` e `runs/` não vão para o git (são grandes).
@@ -289,104 +299,43 @@ DK, YV, BB, RRd (Special).
 | `nk/expert.py` | especialista por busca |
 | `nk/data.py` | formato dos episódios e carregador de sequências |
 | `nk/model.py` | transformer, PilotNet e `PolicyRunner` (uso em tempo real) |
-| `nk/collect.py`, `train.py`, `play.py`, `dagger.py`, `make_state.py` | comandos |
+| `nk/results.py` | formato do `results/races.csv` |
+| `nk/collect.py`, `train.py`, `play.py`, `dagger.py`, `make_state.py`, `compare.py`, `report.py` | comandos |
+| `results/` | resultados: CSV com todas as corridas e relatório gerado |
 
 ---
 
 ## Resultados
 
-Luigi Raceway, Time Trial. Comparação feita em 14/10/2026 com a coleta corrigida (ver abaixo), os
-dois modelos partindo **exatamente dos mesmos dados**: 6 corridas do especialista (6/6 completas,
-128-133 s de jogo, ~7800 decisões). Depois, 3 iterações de DAgger para cada um, com 6 corridas por
-iteração e a rede dirigindo 50%, 75% e 87,5% do tempo. Cada versão foi testada jogando sozinha
-3 vezes.
+**Todos os resultados ficam em [`results/`](results/)**:
 
-| | **PilotNet** (CNN original) | | **Transformer** | |
-|---|---|---|---|---|
-| **Iteração** | **sozinha** | **melhor tempo** | **sozinho** | **melhor tempo** |
-| it0 (só imitação) | **3/3 completas** | 125,95 s | 0/3 (preso em ~0,5 volta) | — |
-| it1 (DAgger, rede 50%) | 3/3 | 128,75 s | **3/3** | **125,85 s** |
-| it2 (DAgger, rede 75%) | 3/3 | 126,85 s | 3/3 | 126,05 s |
-| it3 (DAgger, rede 87,5%) | 3/3 | 127,75 s | 3/3 | 126,75 s |
+- [`results/races.csv`](results/races.csv): uma linha por corrida, com todas as avaliações das redes
+  e todas as corridas do especialista desde o primeiro teste. O GitHub mostra o CSV como tabela
+  pesquisável.
+- [`results/README.md`](results/README.md): tabelas por pista e o gráfico abaixo, **gerados a partir
+  do CSV** por `python -m nk.report` (não edite à mão).
 
-O especialista leva 128-133 s; **as duas redes terminam a corrida um pouco mais rápido que ele**.
-O especialista só testa ações curtas (1,5 s à frente) e às vezes hesita, enquanto as redes
-aprenderam um traçado mais limpo.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="results/times-dark.png">
+  <img alt="Tempo médio por iteração em cada pista, PilotNet e Transformer, com a faixa de tempo do especialista" src="results/times-light.png">
+</picture>
 
-**Conclusões**
+Protocolo de cada pista (Time Trial, Mario): 6 corridas do especialista; depois, para cada modelo,
+3 iterações de DAgger a partir dos mesmos dados iniciais (6 corridas por iteração, com a rede
+dirigindo 50%, 75% e 87,5% do tempo); cada iteração é testada com a rede jogando sozinha 3 vezes.
 
-- **Nesta pista, os dois modelos chegam ao mesmo nível** (~126 s) depois do DAgger. A diferença
-  entre os melhores tempos (0,1 s) está dentro da variação entre corridas.
-- **A PilotNet aprende só com imitação** e o transformer não: ele precisa de 1 iteração de DAgger.
-  Com só 6 corridas de dados, o modelo maior (3,0 M parâmetros, 16 frames de contexto) erra a
-  mesma curva fechada que todos erravam antes da correção; o DAgger resolve isso logo na 1ª
-  iteração.
-- **A PilotNet é mais barata**: treina em ~12 s por época (o transformer em ~90-130 s) e decide
-  em ~2 ms (o transformer em ~5 ms). Ambos estão muito abaixo dos 100 ms entre decisões.
-- Uma pista só não separa os modelos. A vantagem esperada do transformer (contexto temporal,
-  capacidade maior) deve aparecer em **várias pistas**, que é o próximo teste natural.
+**Conclusões até agora** (Luigi Raceway, Choco Mountain e Moo Moo Farm):
 
-```bash
-.venv\Scripts\python.exe -m nk.play --policy runs\lr2_pilot\it0\model.pt --state states\TT\LR.st --episodes 3
-.venv\Scripts\python.exe -m nk.play --policy runs\lr2_tf\it1\model.pt --state states\TT\LR.st --episodes 3
-```
-
-O pipeline completo da comparação (coleta, DAgger dos dois, avaliação) levou ~7 h e o log está em
-`runs/compare_v2.log`. Os dados ficam em `data_v2/` e os modelos em `runs/lr2_pilot` e
-`runs/lr2_tf` (fora do git).
-
-### Choco Mountain (15/10/2026)
-
-Mesmo protocolo, na Choco Mountain (Time Trial): 6 corridas do especialista (6/6 completas,
-132-140 s) e 3 iterações de DAgger para cada modelo. Média e melhor tempo de 3 corridas sozinho:
-
-| | **PilotNet** | | **Transformer** | |
-|---|---|---|---|---|
-| **Iteração** | **completas** | **média / melhor** | **completas** | **média / melhor** |
-| it0 (só imitação) | 1/3 | 146,1 s | 3/3 | 231,7 / 224,2 s (dirige hesitante) |
-| it1 | 3/3 | 130,4 / 129,35 s | 3/3 | 134,6 / 127,35 s |
-| it2 | 3/3 | 146,7 / 145,04 s | 3/3 | **127,6 / 125,75 s** |
-| it3 | 3/3 | 130,8 / 128,75 s | 3/3 | 128,1 / 126,35 s |
-
-**Na Choco Mountain o transformer se sai melhor**: depois do DAgger é ~3 s mais rápido por corrida
-que a PilotNet, mais consistente entre iterações (a PilotNet piorou na it2 antes de voltar na it3) e,
-já só com imitação, completa as 3 corridas, ainda que devagar. Numa pista com morros e curvas
-cegas, o contexto de 16 frames parece ajudar. Os dois terminam abaixo do especialista (132-140 s).
-Log completo: `runs/compare_cm.log`.
-
-### Moo Moo Farm (15/10/2026)
-
-Mesmo protocolo: 6 corridas do especialista (6/6 completas, 99,5-101,2 s) e 3 iterações de DAgger
-para cada modelo. Média e melhor tempo de 3 corridas sozinho:
-
-| | **PilotNet** | | **Transformer** | |
-|---|---|---|---|---|
-| **Iteração** | **completas** | **média / melhor** | **completas** | **média / melhor** |
-| it0 (só imitação) | 0/3 (presa em ~0,55 volta) | — | **3/3** | 101,3 / 101,24 s |
-| it1 | 3/3 | **98,3 / 98,34 s** | 3/3 | 100,4 / 100,44 s |
-| it2 | 3/3 | 98,8 / 98,54 s | 3/3 | 100,3 / 100,34 s |
-| it3 | 3/3 | 99,1 / 99,04 s | 3/3 | 100,6 / 100,54 s |
-
-Aqui a **PilotNet é ~2 s mais rápida** depois do DAgger, enquanto o transformer fica no nível do
-especialista. Por outro lado, só com imitação o transformer já completa a corrida e a PilotNet não.
-
-### Resumo das três pistas
-
-| Pista | Só imitação (it0) | Depois do DAgger (melhor média) | Especialista |
-|---|---|---|---|
-| Luigi Raceway | PilotNet 3/3 · Transformer 0/3 | PilotNet ~126,8 s · Transformer ~126,1 s (empate) | 128-133 s |
-| Choco Mountain | PilotNet 1/3 · Transformer 3/3 (lento) | PilotNet 130,4 s · **Transformer 127,6 s** | 132-140 s |
-| Moo Moo Farm | PilotNet 0/3 · Transformer 3/3 | **PilotNet 98,3 s** · Transformer 100,3 s | 99,5-101 s |
-
-- **Nenhum modelo vence sempre.** Depois do DAgger, cada um ganha numa pista por 2-3 s e empatam na
-  outra. Os dois terminam abaixo ou no nível do especialista em todas.
-- **Só imitação é instável nos dois**: cada modelo falhou em pelo menos uma pista sem DAgger
-  (o transformer completou em 2 de 3 pistas, a PilotNet em 1 de 3). **Uma iteração de DAgger
-  bastou** para os dois completarem as 3 corridas em todas as pistas.
-- **Mario Raceway** foi abandonada: o especialista sai da pista e para de frente para muros, e sem
-  marcha a ré não consegue sair (3 de 6 corridas travaram na 1ª volta).
-- Todos os testes foram de **uma pista por vez**. O próximo passo para separar os modelos de verdade
-  é treinar um único modelo em várias pistas e testar em pistas que ele não viu.
+- **Nenhum modelo vence sempre.** Depois do DAgger, o transformer é ~2,8 s mais rápido na Choco
+  Mountain, a PilotNet é ~2 s mais rápida na Moo Moo Farm, e empatam na Luigi Raceway. Os dois
+  terminam no nível do especialista ou abaixo dele em todas.
+- **Só imitação é instável nos dois** (o transformer completou em 2 de 3 pistas, a PilotNet em 1 de 3).
+  **Uma iteração de DAgger bastou** para os dois completarem todas as corridas.
+- A **PilotNet é bem mais barata**: treina ~10x mais rápido e decide em ~2 ms (transformer ~5 ms).
+- A **Mario Raceway** ficou sem comparação: o especialista sai da pista e para de frente para muros,
+  e sem marcha a ré não consegue sair.
+- Todos os testes foram de **uma pista por vez**; separar os modelos de verdade pede um modelo
+  treinado em várias pistas e testado em pistas que ele não viu.
 
 ### Histórico: o bug do frame extra (13-14/10/2026)
 
@@ -399,11 +348,29 @@ no `play`, onde não há savestates. A rede chegava nas curvas mais rápido do q
 
 Medição: 120 comandos iguais levavam o cronômetro do jogo a 12,13 s sem savestates e a 16,13 s
 salvando a cada passo. A correção (`RUN ... SAVE slot`, que salva no último frame do comando) deixa
-os dois casos idênticos. Os dados e modelos antigos ficaram em `data_v1/` e `runs/_v1/`.
+os dois casos idênticos. Esses resultados aparecem como `dados = v1` no CSV; os dados e modelos
+antigos ficaram em `data_v1/` e `runs/_v1/`.
 
-**Próximos passos:** treinar em várias pistas (onde os modelos devem se diferenciar); incluir ré/freio
-nas ações (o kart preso de frente para a parede não tem como sair só acelerando); ajuste fino por
-aprendizado por reforço (PPO) a partir da rede imitada, com recompensa de progresso na pista.
+---
+
+## TO DO
+
+- [ ] **Testar todas as pistas.** Faltam 13 das 16 (`python -m nk.compare <PISTA>` em cada uma).
+  - [ ] Implementar **marcha a ré / freio** nas ações do especialista e das redes: sem isso, pistas
+    com muros perto da estrada (Mario Raceway) travam quando o kart para de frente para a parede.
+  - [ ] Treinar **um modelo em várias pistas** e testar em pistas que ele não viu.
+- [ ] **Implementar novos modelos.** Hoje basta criar a classe em `nk/model.py` e registrá-la em
+  `ARCHITECTURES`, mas `nk/train.py` e `nk/dagger.py` ainda escolhem entre "pilotnet" e
+  "transformer" de forma fixa: generalizar para qualquer arquitetura registrada.
+- [ ] **Diminuir o tempo de execução?** Hoje uma comparação numa pista leva ~5-8 h, quase todo no
+  especialista (~2 s por decisão). Ideias a avaliar:
+  - avaliar as 11 direções em paralelo (vários emuladores por decisão) ou com menos direções;
+  - horizonte de busca menor (hoje 15 frames virando + 30 reto);
+  - decidir a cada mais frames na coleta do especialista;
+  - menos épocas no ajuste fino do transformer (~90-130 s por época).
+- [ ] **Implementar aprendizado por reforço (RL).** Ajuste fino com PPO partindo da rede imitada:
+  recompensa de progresso na pista (lida da memória), penalidade para ficar parado ou andar para
+  trás e penalidade de KL para não se afastar demais da rede imitada no começo.
 
 ---
 

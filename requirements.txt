@@ -2,3 +2,4 @@
 numpy
 pillow
 windows-capture
+matplotlib

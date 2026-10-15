@@ -1,0 +1,127 @@
+data,pista,dados,tipo,modelo,run,iteracao,checkpoint,selecao,corrida,resultado,voltas,tempo_s,decisao_ms,nota
+2026-10-13,LR,v1,especialista,especialista,LR,,,,1,finished,3.003,132.65,,corrida de coleta (com perturbações)
+2026-10-13,LR,v1,especialista,especialista,LR,,,,2,finished,3.003,131.85,,corrida de coleta (com perturbações)
+2026-10-13,LR,v1,especialista,especialista,LR,,,,3,finished,3.002,133.84,,corrida de coleta (com perturbações)
+2026-10-13,LR,v1,especialista,especialista,LR,,,,4,stuck,2.518,129.18,,corrida de coleta (com perturbações)
+2026-10-13,LR,v1,especialista,especialista,LR,,,,5,finished,3.003,135.74,,corrida de coleta (com perturbações)
+2026-10-13,LR,v1,especialista,especialista,LR,,,,6,finished,3.002,137.31,,corrida de coleta (com perturbações)
+2026-10-13,LR,v1,avaliacao,transformer,lr_v1,0,model,media,1,stuck,0.520,49.33,6.0,
+2026-10-13,LR,v1,avaliacao,transformer,lr_v1,0,last,media,1,stuck,0.540,44.33,6.1,
+2026-10-13,LR,v1,avaliacao,transformer,lr_v1,0,model,greedy,1,stuck,0.510,34.03,5.8,
+2026-10-13,LR,v1,avaliacao,transformer,lr_v1,0,model,greedy,2,stuck,0.550,51.73,4.6,
+2026-10-13,LR,v1,avaliacao,transformer,lr_v1,0,last,greedy,1,stuck,0.540,57.93,5.2,
+2026-10-13,LR,v1,avaliacao,transformer,lr_v1,0,last,greedy,2,stuck,0.510,43.03,4.1,
+2026-10-13,LR,v1,avaliacao,pilotnet,lr_pilot,0,model,media,1,stuck,0.450,33.53,6.0,
+2026-10-13,LR,v1,avaliacao,pilotnet,lr_pilot,0,model,media,2,stuck,0.470,33.63,1.8,
+2026-10-14,LR,v1,avaliacao,pilotnet,lr_pilot,1,model,media,1,stuck,0.520,44.63,5.0,
+2026-10-14,LR,v1,avaliacao,pilotnet,lr_pilot,1,model,media,2,stuck,0.510,45.63,3.7,
+2026-10-14,LR,v1,avaliacao,pilotnet,lr_pilot,3,model,media,1,finished,3.000,125.15,2.4,
+2026-10-14,LR,v1,avaliacao,pilotnet,lr_pilot,3,model,media,2,finished,3.000,125.15,2.1,
+2026-10-14,LR,v1,avaliacao,pilotnet,lr_pilot,3,model,media,3,finished,3.000,125.65,2.0,
+2026-10-14,LR,v1,avaliacao,pilotnet,lr_pilot,3,model,media,1,finished,3.000,125.35,,repetição assistida pelo usuário
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,1,model,media,1,stuck,0.510,42.13,7.9,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,1,model,media,2,stuck,0.500,42.83,6.4,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,model,media,1,stuck,0.510,42.13,8.6,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,model,media,2,stuck,0.520,43.83,6.8,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,last,media,1,stuck,0.510,42.83,8.2,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,last,media,2,stuck,0.510,44.33,6.6,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,model,greedy,1,stuck,0.520,38.83,8.2,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,model,greedy,2,stuck,0.520,38.43,6.8,
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,model,media,1,stuck,0.510,42.13,8.1,captura com espera mínima de 40 ms
+2026-10-14,LR,v1,avaliacao,transformer,lr_tf,2,model,media,2,stuck,0.520,41.63,6.2,captura com espera mínima de 40 ms
+2026-10-14,LR,v2,especialista,especialista,expert,,,,1,finished,3.002,128.15,,corrida de coleta (com perturbações)
+2026-10-14,LR,v2,especialista,especialista,expert,,,,2,finished,3.002,131.05,,corrida de coleta (com perturbações)
+2026-10-14,LR,v2,especialista,especialista,expert,,,,3,finished,3.002,130.55,,corrida de coleta (com perturbações)
+2026-10-14,LR,v2,especialista,especialista,expert,,,,4,finished,3.000,131.05,,corrida de coleta (com perturbações)
+2026-10-14,LR,v2,especialista,especialista,expert,,,,5,finished,3.002,131.35,,corrida de coleta (com perturbações)
+2026-10-14,LR,v2,especialista,especialista,expert,,,,6,finished,3.000,133.04,,corrida de coleta (com perturbações)
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,0,model,media,1,finished,3.00,127.25,2.5,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,0,model,media,2,finished,3.00,125.95,1.8,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,0,model,media,3,finished,3.00,128.75,2.1,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,1,model,media,1,finished,3.00,129.15,2.5,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,1,model,media,2,finished,3.00,128.85,2.3,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,1,model,media,3,finished,3.00,128.75,2.2,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,2,model,media,1,finished,3.00,126.85,2.5,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,2,model,media,2,finished,3.00,126.85,2.2,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,2,model,media,3,finished,3.00,126.95,2.2,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,3,model,media,1,finished,3.00,127.75,2.5,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,3,model,media,2,finished,3.00,127.75,2.2,
+2026-10-14,LR,v2,avaliacao,pilotnet,lr2_pilot,3,model,media,3,finished,3.00,127.85,2.1,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,0,model,media,1,stuck,0.51,44.63,5.4,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,0,model,media,2,stuck,0.50,45.03,4.3,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,0,model,media,3,stuck,0.50,44.23,4.2,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,1,model,media,1,finished,3.00,125.85,4.6,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,1,model,media,2,finished,3.00,126.15,4.3,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,1,model,media,3,finished,3.00,127.05,4.2,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,2,model,media,1,finished,3.00,126.25,4.9,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,2,model,media,2,finished,3.00,126.15,4.9,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,2,model,media,3,finished,3.00,126.05,5.4,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,3,model,media,1,finished,3.00,126.75,6.8,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,3,model,media,2,finished,3.00,126.85,6.6,
+2026-10-14,LR,v2,avaliacao,transformer,lr2_tf,3,model,media,3,finished,3.00,126.95,6.7,
+2026-10-15,CM,v2,especialista,especialista,cm_expert,,,,1,finished,3.002,132.45,,corrida de coleta (com perturbações)
+2026-10-15,CM,v2,especialista,especialista,cm_expert,,,,2,finished,3.002,133.04,,corrida de coleta (com perturbações)
+2026-10-15,CM,v2,especialista,especialista,cm_expert,,,,3,finished,3.003,134.74,,corrida de coleta (com perturbações)
+2026-10-15,CM,v2,especialista,especialista,cm_expert,,,,4,finished,3.000,137.34,,corrida de coleta (com perturbações)
+2026-10-15,CM,v2,especialista,especialista,cm_expert,,,,5,finished,3.002,139.94,,corrida de coleta (com perturbações)
+2026-10-15,CM,v2,especialista,especialista,cm_expert,,,,6,finished,3.000,140.44,,corrida de coleta (com perturbações)
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,0,model,media,1,finished,3.00,146.14,2.4,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,0,model,media,2,stuck,2.79,140.84,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,0,model,media,3,stuck,1.79,110.84,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,1,model,media,1,finished,3.00,129.35,2.4,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,1,model,media,2,finished,3.00,131.55,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,1,model,media,3,finished,3.00,130.35,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,2,model,media,1,finished,3.00,147.84,2.5,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,2,model,media,2,finished,3.00,147.24,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,2,model,media,3,finished,3.00,145.04,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,3,model,media,1,finished,3.00,128.75,2.4,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,3,model,media,2,finished,3.00,131.85,2.2,
+2026-10-15,CM,v2,avaliacao,pilotnet,cm_pilot,3,model,media,3,finished,3.00,131.85,2.1,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,0,model,media,1,finished,3.00,226.12,4.7,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,0,model,media,2,finished,3.00,224.22,4.5,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,0,model,media,3,finished,3.00,244.82,4.5,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,1,model,media,1,finished,3.00,133.34,4.7,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,1,model,media,2,finished,3.00,143.24,4.4,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,1,model,media,3,finished,3.00,127.35,4.3,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,2,model,media,1,finished,3.00,131.15,4.7,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,2,model,media,2,finished,3.00,125.75,4.4,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,2,model,media,3,finished,3.00,125.95,4.4,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,3,model,media,1,finished,3.00,131.65,4.7,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,3,model,media,2,finished,3.00,126.35,4.3,
+2026-10-15,CM,v2,avaliacao,transformer,cm_tf,3,model,media,3,finished,3.00,126.35,4.4,
+2026-10-15,MMF,v2,especialista,especialista,mmf_expert,,,,1,finished,3.002,99.74,,corrida de coleta (com perturbações)
+2026-10-15,MMF,v2,especialista,especialista,mmf_expert,,,,2,finished,3.002,99.84,,corrida de coleta (com perturbações)
+2026-10-15,MMF,v2,especialista,especialista,mmf_expert,,,,3,finished,3.000,99.84,,corrida de coleta (com perturbações)
+2026-10-15,MMF,v2,especialista,especialista,mmf_expert,,,,4,finished,3.000,100.34,,corrida de coleta (com perturbações)
+2026-10-15,MMF,v2,especialista,especialista,mmf_expert,,,,5,finished,3.000,101.24,,corrida de coleta (com perturbações)
+2026-10-15,MMF,v2,especialista,especialista,mmf_expert,,,,6,finished,3.002,99.54,,corrida de coleta (com perturbações)
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,0,model,media,1,stuck,0.55,30.13,3.7,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,0,model,media,2,stuck,0.55,30.03,2.4,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,0,model,media,3,stuck,0.53,30.23,2.7,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,1,model,media,1,finished,3.00,98.34,2.8,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,1,model,media,2,finished,3.00,98.34,2.3,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,1,model,media,3,finished,3.00,98.34,2.3,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,2,model,media,1,finished,3.00,98.54,2.8,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,2,model,media,2,finished,3.00,98.94,2.4,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,2,model,media,3,finished,3.00,98.94,2.5,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,3,model,media,1,finished,3.00,99.04,2.8,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,3,model,media,2,finished,3.00,99.14,2.6,
+2026-10-15,MMF,v2,avaliacao,pilotnet,mmf_pilot,3,model,media,3,finished,3.00,99.04,2.7,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,0,model,media,1,finished,3.00,101.24,5.7,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,0,model,media,2,finished,3.00,101.24,5.4,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,0,model,media,3,finished,3.00,101.34,5.4,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,1,model,media,1,finished,3.00,100.44,5.8,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,1,model,media,2,finished,3.00,100.44,5.4,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,1,model,media,3,finished,3.00,100.44,5.2,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,2,model,media,1,finished,3.00,100.34,6.1,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,2,model,media,2,finished,3.00,100.34,5.9,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,2,model,media,3,finished,3.00,100.34,5.5,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,3,model,media,1,finished,3.00,100.54,5.7,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,3,model,media,2,finished,3.00,100.64,5.4,
+2026-10-15,MMF,v2,avaliacao,transformer,mmf_tf,3,model,media,3,finished,3.00,100.64,5.1,
+2026-10-15,MR,v2,especialista,especialista,_mr_expert_parcial,,,,1,stuck,0.747,41.63,,pista abandonada: o especialista sai da pista e para em muros (sem marcha a ré); interrupted = parada manual da coleta
+2026-10-15,MR,v2,especialista,especialista,_mr_expert_parcial,,,,2,stuck,0.747,48.43,,pista abandonada: o especialista sai da pista e para em muros (sem marcha a ré); interrupted = parada manual da coleta
+2026-10-15,MR,v2,especialista,especialista,_mr_expert_parcial,,,,3,stuck,0.960,55.43,,pista abandonada: o especialista sai da pista e para em muros (sem marcha a ré); interrupted = parada manual da coleta
+2026-10-15,MR,v2,especialista,especialista,_mr_expert_parcial,,,,4,finished,3.000,129.75,,pista abandonada: o especialista sai da pista e para em muros (sem marcha a ré); interrupted = parada manual da coleta
+2026-10-15,MR,v2,especialista,especialista,_mr_expert_parcial,,,,5,stuck,2.960,131.55,,pista abandonada: o especialista sai da pista e para em muros (sem marcha a ré); interrupted = parada manual da coleta
+2026-10-15,MR,v2,especialista,especialista,_mr_expert_parcial,,,,6,interrupted,2.960,139.04,,pista abandonada: o especialista sai da pista e para em muros (sem marcha a ré); interrupted = parada manual da coleta
