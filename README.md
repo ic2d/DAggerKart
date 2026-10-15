@@ -66,7 +66,11 @@ fast-forward e depois de muitos savestates, que é exatamente o que o projeto fa
 1. Abra o `mupen64.exe`.
 2. Vá em **Options > Settings > Plugins** e escolha **GLideN64** em *Video*. Deixe Audio, Input e
    RSP nos plugins padrão ("TAS ...").
-3. Abra a ROM (*File > Load ROM*) e confira se o jogo aparece. Feche o Mupen normalmente, para ele
+3. Desligue a verificação automática de atualizações: com o Mupen fechado, edite
+   `%LOCALAPPDATA%\mupen64-rr-lua\config.json` e troque `"automatic_update_checking": 1` por `0`.
+   Senão cada emulador aberto pela coleta mostra uma janela de atualização. Não atualize o Mupen sem
+   testar: o projeto foi validado na versão 1.5.0-5.
+4. Abra a ROM (*File > Load ROM*) e confira se o jogo aparece. Feche o Mupen normalmente, para ele
    salvar a configuração.
 
 ### Passo 5 — Instalar o Python 3.12
@@ -291,46 +295,62 @@ DK, YV, BB, RRd (Special).
 
 ## Resultados
 
-Todos na Luigi Raceway, Time Trial.
+Luigi Raceway, Time Trial. Comparação feita em 14/10/2026 com a coleta corrigida (ver abaixo), os
+dois modelos partindo **exatamente dos mesmos dados**: 6 corridas do especialista (6/6 completas,
+128-133 s de jogo, ~7800 decisões). Depois, 3 iterações de DAgger para cada um, com 6 corridas por
+iteração e a rede dirigindo 50%, 75% e 87,5% do tempo. Cada versão foi testada jogando sozinha
+3 vezes.
 
-**Imitação pura (13/10/2026):** 6 corridas do especialista (~6000 decisões); 5 completaram as 3
-voltas em 132-137 s de jogo.
+| | **PilotNet** (CNN original) | | **Transformer** | |
+|---|---|---|---|---|
+| **Iteração** | **sozinha** | **melhor tempo** | **sozinho** | **melhor tempo** |
+| it0 (só imitação) | **3/3 completas** | 125,95 s | 0/3 (preso em ~0,5 volta) | — |
+| it1 (DAgger, rede 50%) | 3/3 | 128,75 s | **3/3** | **125,85 s** |
+| it2 (DAgger, rede 75%) | 3/3 | 126,85 s | 3/3 | 126,05 s |
+| it3 (DAgger, rede 87,5%) | 3/3 | 127,75 s | 3/3 | 126,75 s |
 
-| Modelo | Erro médio de direção (validação) | Jogando sozinho |
-|---|---|---|
-| transformer (melhor época) | 0,087 | preso em ~0,51-0,55 volta; numa tentativa chegou a 2,59 voltas |
-| transformer (última época, com e sem `--greedy`) | 0,089 | preso em ~0,51-0,54 volta |
-| pilotnet | 0,143 | preso em ~0,45-0,47 volta |
+O especialista leva 128-133 s; **as duas redes terminam a corrida um pouco mais rápido que ele**.
+O especialista só testa ações curtas (1,5 s à frente) e às vezes hesita, enquanto as redes
+aprenderam um traçado mais limpo.
 
-Nas curvas fechadas o especialista pede direção total (+1,0) e a rede vira bem menos (~+0,1), bate
-na parede e fica raspando nela, porque nunca viu essa situação nos dados. É o problema clássico da
-imitação pura, que o DAgger ataca.
+**Conclusões**
 
-**DAgger com a PilotNet (14/10/2026):** 3 iterações a partir da PilotNet acima, 6 corridas por
-iteração, com a rede dirigindo 50%, 75% e 87,5% do tempo (`runs/lr_pilot/it1..it3`). Total: 24
-corridas, ~24 mil decisões anotadas.
-
-| Iteração | Corridas completas na coleta | Erro de validação | Jogando sozinha |
-|---|---|---|---|
-| it0 (só imitação) | 5/6 (especialista dirigindo) | 0,143 | presa em ~0,46 volta |
-| it1 (rede 50%) | 4/6 | 0,124 | presa em ~0,52 volta |
-| it2 (rede 75%) | 4/6 | 0,112 | — |
-| it3 (rede 87,5%) | 5/6, sem nenhum resgate | 0,114 | **3/3 corridas completas, 125,15 s** |
-
-**A rede final completa a corrida sozinha e é mais rápida que o próprio especialista** (132-137 s):
-o especialista só testa ações curtas e às vezes hesita, enquanto a rede aprendeu um traçado mais
-limpo.
+- **Nesta pista, os dois modelos chegam ao mesmo nível** (~126 s) depois do DAgger. A diferença
+  entre os melhores tempos (0,1 s) está dentro da variação entre corridas.
+- **A PilotNet aprende só com imitação** e o transformer não: ele precisa de 1 iteração de DAgger.
+  Com só 6 corridas de dados, o modelo maior (3,0 M parâmetros, 16 frames de contexto) erra a
+  mesma curva fechada que todos erravam antes da correção; o DAgger resolve isso logo na 1ª
+  iteração.
+- **A PilotNet é mais barata**: treina em ~12 s por época (o transformer em ~90-130 s) e decide
+  em ~2 ms (o transformer em ~5 ms). Ambos estão muito abaixo dos 100 ms entre decisões.
+- Uma pista só não separa os modelos. A vantagem esperada do transformer (contexto temporal,
+  capacidade maior) deve aparecer em **várias pistas**, que é o próximo teste natural.
 
 ```bash
-.venv\Scripts\python.exe -m nk.play --policy runs\lr_pilot\it3\model.pt --state states\TT\LR.st --episodes 3
+.venv\Scripts\python.exe -m nk.play --policy runs\lr2_pilot\it0\model.pt --state states\TT\LR.st --episodes 3
+.venv\Scripts\python.exe -m nk.play --policy runs\lr2_tf\it1\model.pt --state states\TT\LR.st --episodes 3
 ```
 
-As corridas que ficaram presas durante a coleta pararam sempre no mesmo ponto (0,52 de uma volta):
-de frente para a parede, nem o especialista consegue sair, porque nenhuma das ações dá ré.
+O pipeline completo da comparação (coleta, DAgger dos dois, avaliação) levou ~7 h e o log está em
+`runs/compare_v2.log`. Os dados ficam em `data_v2/` e os modelos em `runs/lr2_pilot` e
+`runs/lr2_tf` (fora do git).
 
-**Próximos passos:** incluir ré/freio nas ações (o kart preso de frente para a parede não tem como
-sair só acelerando); ajuste fino por aprendizado por reforço (PPO) a partir da rede imitada, com
-recompensa de progresso na pista; treinar em várias pistas.
+### Histórico: o bug do frame extra (13-14/10/2026)
+
+Nos primeiros testes, **toda rede treinada só por imitação travava** numa curva fechada em ~0,5
+volta, e a PilotNet só completou a corrida depois de 3 iterações de DAgger. A causa era um bug na
+coleta: cada vez que o agente salvava um savestate para o especialista, o jogo andava **1 frame
+extra sem nenhum botão** (o Lua esperava o salvamento avançando um frame sem definir o input). Com
+isso, nos dados cada decisão tinha 1 frame "solto" + 3 de ação, e o kart andava mais devagar que
+no `play`, onde não há savestates. A rede chegava nas curvas mais rápido do que tinha aprendido.
+
+Medição: 120 comandos iguais levavam o cronômetro do jogo a 12,13 s sem savestates e a 16,13 s
+salvando a cada passo. A correção (`RUN ... SAVE slot`, que salva no último frame do comando) deixa
+os dois casos idênticos. Os dados e modelos antigos ficaram em `data_v1/` e `runs/_v1/`.
+
+**Próximos passos:** treinar em várias pistas (onde os modelos devem se diferenciar); incluir ré/freio
+nas ações (o kart preso de frente para a parede não tem como sair só acelerando); ajuste fino por
+aprendizado por reforço (PPO) a partir da rede imitada, com recompensa de progresso na pista.
 
 ---
 
@@ -340,6 +360,7 @@ recompensa de progresso na pista; treinar em várias pistas.
 |---|---|
 | Mupen mostra "An error has occured" e trava, ou a pista fica preta | Está usando o plugin TAS Video. Selecione o **GLideN64** (Passo 4) |
 | Mupen fecha logo ao abrir o jogo com o GLideN64 | Build errada: use a **PJ64Legacy-WTL-x64** (Passo 3) |
+| Janela de atualização do Mupen em cada emulador | Desligue a verificação automática de atualizações (Passo 4) |
 | Diálogo "Video Unknown Microcode" | Só aparece com o TAS Video; com ele escolha F3DEX. O GLideN64 não pergunta |
 | "Failed to load ... .st" | Savestate de outra versão da ROM: recrie com `nk.make_state` (Passo 9) |
 | `FileNotFoundError: Mupen não encontrado` / `ROM não encontrada` | Ajuste o `config.json` (Passo 8) |
