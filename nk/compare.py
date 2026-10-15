@@ -98,7 +98,7 @@ def main():
         if args.shutdown:
             log("desligamento agendado para daqui a 15 min (cancelar: shutdown /a)")
             subprocess.run(["shutdown", "/s", "/t", "900", "/c",
-                            "NeuralKart: comparação terminou. O PC desliga em 15 min (cancelar: shutdown /a)."])
+                            "DAggerKart: comparação terminou. O PC desliga em 15 min (cancelar: shutdown /a)."])
 
 
 if __name__ == "__main__":

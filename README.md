@@ -1,102 +1,86 @@
-# NeuralKart
+# DAggerKart
 
-IA que joga **Mario Kart 64** no emulador **Mupen64-rr-lua**. Uma rede neural olha a tela e decide
-a direção do kart. Ela aprende imitando um **especialista de busca**, que testa cada direção possível
-usando savestates e escolhe a melhor, e depois é refinada com **DAgger**.
-
-Dois modelos estão disponíveis: um **transformer** espaço-temporal (padrão) e a **PilotNet**, a CNN
-da NVIDIA usada no projeto original.
+IA que joga **Mario Kart 64** no emulador **Mupen64-rr-lua**. Uma rede neural olha a tela e decide a
+direção do kart. Ela aprende imitando um **especialista de busca** (que testa cada direção com
+savestates e escolhe a melhor) e é refinada com **DAgger**. Dois modelos: um **transformer**
+espaço-temporal e a **PilotNet**, a CNN da NVIDIA usada no projeto que deu origem a este.
 
 > **Plataforma:** só Windows 10 (1903+) ou 11, 64 bits. O Mupen64-rr-lua é Windows-only e a captura
 > de tela usa a API Windows Graphics Capture.
 
----
-
 ## Sumário
 
-1. [Tutorial: do zero até a IA jogando](#tutorial-do-zero-até-a-ia-jogando)
-2. [Comandos](#comandos)
-3. [Como tudo funciona](#como-tudo-funciona)
+1. [Instalação](#instalação)
+2. [Uso](#uso)
+3. [Como funciona](#como-funciona)
 4. [Resultados](#resultados)
 5. [TO DO](#to-do)
 6. [Solução de problemas](#solução-de-problemas)
 
 ---
 
-## Tutorial: do zero até a IA jogando
+## Instalação
 
-### O que você precisa ter
-
-| | |
+| Requisito | |
 |---|---|
-| Sistema | Windows 10 (versão 1903 ou mais nova) ou Windows 11, 64 bits |
+| Sistema | Windows 10 (1903+) ou 11, 64 bits |
 | GPU (recomendado) | AMD Radeon RX 6000/7000/9000 com ROCm, ou NVIDIA com CUDA. Sem GPU funciona, mas o treino fica lento |
-| Espaço em disco | ~3 GB (Python + PyTorch) + ~35 MB por corrida coletada |
-| ROM | Uma cópia sua de **Mario Kart 64 (USA)** (`.n64`, `.z64` ou `.v64`). **A ROM não vem com o projeto** |
+| Disco | ~3 GB (Python + PyTorch) + ~35 MB por corrida coletada |
+| ROM | Uma cópia sua de **Mario Kart 64 (USA)** (`.n64`, `.z64` ou `.v64`). **Não vem com o projeto** |
 
-### Passo 1 — Baixar o projeto
+### 1. Projeto
 
-Instale o [Git para Windows](https://git-scm.com/download/win) e clone o repositório:
+Com o [Git para Windows](https://git-scm.com/download/win):
 
 ```bash
-git clone <url-deste-repositório> NeuralKart
-cd NeuralKart
+git clone https://github.com/andryll/DAggerKart.git
+cd DAggerKart
 ```
 
-### Passo 2 — Baixar o emulador (Mupen64-rr-lua 1.5)
+### 2. Emulador (Mupen64-rr-lua 1.5)
 
-1. Baixe o pacote x64 em <https://mupen64.com>, botão *Download 64-bit for Windows*
-   (link direto: <https://github.com/mupen64/repack/archive/refs/heads/stable-windows-x64.zip>).
-2. Extraia numa pasta qualquer, por exemplo `C:\Emuladores\Mupen`. Dentro dela deve existir
-   `mupen64.exe`.
+Baixe o pacote x64 em <https://mupen64.com> (*Download 64-bit for Windows*; link direto:
+<https://github.com/mupen64/repack/archive/refs/heads/stable-windows-x64.zip>) e extraia numa pasta,
+por exemplo `C:\Emuladores\Mupen` (deve conter `mupen64.exe`).
 
-### Passo 3 — Baixar o plugin de vídeo GLideN64
+### 3. Plugin de vídeo GLideN64
 
-O plugin de vídeo que vem embutido no Mupen 1.5 (TAS Video) **trava com o Mario Kart** em
-fast-forward e depois de muitos savestates, que é exatamente o que o projeto faz. Use o GLideN64:
+O plugin embutido no Mupen 1.5 (TAS Video) **trava com o Mario Kart** em fast-forward e depois de
+muitos savestates, que é exatamente o que o projeto faz.
 
-1. Abra <https://github.com/gonetz/GLideN64/releases/tag/github-actions>.
-2. Baixe **`GLideN64-...-Windows-PJ64Legacy-WTL-x64.zip`**.
-   - Precisa ser a build **PJ64Legacy** e **x64**. A build "Project64" trava ao abrir o jogo no
-     Mupen, que usa a versão antiga da especificação de plugins.
-3. Extraia `GLideN64.dll` e `GLideN64.custom.ini` para a pasta `plugin` do Mupen
-   (`C:\Emuladores\Mupen\plugin\`; crie a pasta se não existir).
+1. Em <https://github.com/gonetz/GLideN64/releases/tag/github-actions>, baixe
+   **`GLideN64-...-Windows-PJ64Legacy-WTL-x64.zip`**. Precisa ser a build **PJ64Legacy x64**: a
+   "Project64" trava ao abrir o jogo, porque o Mupen usa a versão antiga da especificação de plugins.
+2. Extraia `GLideN64.dll` e `GLideN64.custom.ini` para a pasta `plugin` do Mupen (crie se não existir).
 
-### Passo 4 — Configurar o Mupen
+### 4. Configurar o Mupen
 
-1. Abra o `mupen64.exe`.
-2. Vá em **Options > Settings > Plugins** e escolha **GLideN64** em *Video*. Deixe Audio, Input e
-   RSP nos plugins padrão ("TAS ...").
-3. Desligue a verificação automática de atualizações: com o Mupen fechado, edite
+1. Abra o `mupen64.exe`, vá em **Options > Settings > Plugins** e escolha **GLideN64** em *Video*
+   (Audio, Input e RSP ficam nos padrões "TAS ...").
+2. Abra a ROM (*File > Load ROM*), confira se o jogo aparece e feche o Mupen normalmente (para ele
+   salvar a configuração).
+3. Desligue a verificação de atualizações: com o Mupen fechado, edite
    `%LOCALAPPDATA%\mupen64-rr-lua\config.json` e troque `"automatic_update_checking": 1` por `0`.
-   Senão cada emulador aberto pela coleta mostra uma janela de atualização. Não atualize o Mupen sem
-   testar: o projeto foi validado na versão 1.5.0-5.
-4. Abra a ROM (*File > Load ROM*) e confira se o jogo aparece. Feche o Mupen normalmente, para ele
-   salvar a configuração.
+   Senão cada emulador aberto pela coleta mostra uma janela de atualização. O projeto foi validado na
+   versão 1.5.0-5; não atualize sem testar.
 
-### Passo 5 — Instalar o Python 3.12
+### 5. Python 3.12
 
-O PyTorch com ROCm para Windows só existe para Python **3.12**, então use essa versão mesmo que
-você tenha outra instalada (elas convivem sem problema).
-
-- Pelo [gerenciador de instalação do Python](https://www.python.org/downloads/windows/):
-  ```bash
-  py install 3.12
-  ```
-- Ou baixe o instalador do 3.12 em <https://www.python.org/downloads/release/python-31210/>.
-
-Crie o ambiente virtual dentro da pasta do projeto:
+O PyTorch com ROCm para Windows só existe para Python **3.12** (ele convive com outras versões).
+Instale com `py install 3.12` ([gerenciador de instalação do Python](https://www.python.org/downloads/windows/))
+ou pelo [instalador](https://www.python.org/downloads/release/python-31210/), e crie o ambiente
+virtual dentro da pasta do projeto:
 
 ```bash
 py -V:3.12 -m venv .venv
 .venv\Scripts\python.exe -m pip install --upgrade pip
 ```
 
-### Passo 6 — Instalar o PyTorch (escolha conforme a sua GPU)
+### 6. PyTorch (conforme a GPU)
 
-**AMD (ROCm para Windows).** Precisa do driver AMD Adrenalin **26.2.2 ou mais novo**. Comandos do
+**AMD (ROCm para Windows)**, com o driver Adrenalin **26.2.2 ou mais novo**. Versões do
 [guia oficial da AMD](https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/docs/install/installrad/windows/install-pytorch.html)
-(versões de quando o projeto foi feito; confira no guia se há mais novas):
+na época do projeto (confira se há mais novas):
 
 ```bash
 .venv\Scripts\python.exe -m pip install --no-cache-dir https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm_sdk_core-7.2.1-py3-none-win_amd64.whl https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm_sdk_devel-7.2.1-py3-none-win_amd64.whl https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm_sdk_libraries_custom-7.2.1-py3-none-win_amd64.whl https://repo.radeon.com/rocm/windows/rocm-rel-7.2.1/rocm-7.2.1.tar.gz
@@ -111,30 +95,27 @@ py -V:3.12 -m venv .venv
 .venv\Scripts\python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 ```
 
-**Sem GPU (só CPU):**
+**Só CPU:**
 
 ```bash
 .venv\Scripts\python.exe -m pip install torch torchvision
 ```
 
-Confira se a GPU foi reconhecida (deve imprimir `True` e o nome da placa; com CPU imprime `False`):
+Confira (deve imprimir `True` e o nome da placa; na AMD o PyTorch também usa a API `torch.cuda`):
 
 ```bash
 .venv\Scripts\python.exe -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
 ```
 
-> Na AMD o PyTorch também usa a API "cuda" (`torch.cuda`), então o código é o mesmo para as duas.
-
-### Passo 7 — Instalar as outras dependências
+### 7. Outras dependências
 
 ```bash
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-### Passo 8 — Dizer ao projeto onde estão o emulador e a ROM
+### 8. Caminhos do emulador e da ROM
 
-Copie `config.example.json` para `config.json` (esse arquivo não vai para o git) e ajuste os
-caminhos:
+Copie `config.example.json` para `config.json` (fica fora do git) e ajuste:
 
 ```json
 {
@@ -143,56 +124,53 @@ caminhos:
 }
 ```
 
-Alternativa: variáveis de ambiente `NK_MUPEN_EXE` e `NK_ROM`.
+(Ou use as variáveis de ambiente `NK_MUPEN_EXE` e `NK_ROM`.)
 
-### Passo 9 — Testar
+### 9. Testar
 
-Daqui em diante, todos os comandos rodam **dentro da pasta do projeto**, com o Python do ambiente
-virtual. O Mupen abre e fecha sozinho; não precisa abrir manualmente.
+Todos os comandos rodam dentro da pasta do projeto, com o Python do ambiente virtual; o Mupen abre e
+fecha sozinho. Colete uma corrida curta com o especialista (deve abrir o jogo e o kart sair
+dirigindo; grava um arquivo em `data/LR/TT/`):
 
-1. Os savestates de largada das 16 pistas já vêm em `states/TT/`. Se eles não carregarem (por
-   exemplo, com uma ROM de versão diferente), recrie-os, o que leva ~1 min por pista:
-   ```bash
-   .venv\Scripts\python.exe -m nk.make_state --mode TT --all
-   ```
-2. Colete uma corrida curta com o especialista (deve abrir o jogo e o kart sair dirigindo):
-   ```bash
-   .venv\Scripts\python.exe -m nk.collect --states states\TT\LR.st --max-seconds 20
-   ```
-   Isso grava um arquivo em `data/LR/TT/`.
+```bash
+.venv\Scripts\python.exe -m nk.collect --states states\TT\LR.st --max-seconds 20
+```
 
-Se isso funcionou, está tudo pronto. Siga para [Comandos](#comandos).
+Os savestates de largada das 16 pistas já vêm em `states/TT/`. Se não carregarem (por exemplo, com
+outra versão da ROM), recrie-os (~1 min por pista):
+
+```bash
+.venv\Scripts\python.exe -m nk.make_state --mode TT --all
+```
 
 ---
 
-## Comandos
+## Uso
+
+O jeito mais simples é a **comparação completa numa pista**: corridas do especialista, DAgger dos
+dois modelos a partir dos mesmos dados e teste de cada iteração jogando sozinha. Tudo é anotado em
+`results/races.csv`:
 
 ```bash
-# 1. coletar com o especialista (6 emuladores em paralelo, 1 corrida cada, só na Luigi Raceway)
-.venv\Scripts\python.exe -m nk.collect --states states\TT\LR.st --workers 6 --episodes 1
-
-# 2. treinar (transformer, o padrão, ou a CNN do projeto original)
-.venv\Scripts\python.exe -m nk.train --out runs\lr_v1 --epochs 40
-.venv\Scripts\python.exe -m nk.train --out runs\lr_pilot\it0 --arch pilotnet --epochs 30
-
-# 3. ver a rede jogar (abre o jogo na tela)
-.venv\Scripts\python.exe -m nk.play --policy runs\lr_v1\model.pt --state states\TT\LR.st --episodes 2
-
-# DAgger: ciclos de coleta com a rede dirigindo + retreino (aqui continuando da iteração 0)
-.venv\Scripts\python.exe -m nk.dagger --name lr_pilot --arch pilotnet --start 1 --iterations 4 --workers 6 --states states\TT\LR.st
-
-# criar savestates de largada (Time Trial: qualquer pista; GP: 1ª pista de cada copa)
-.venv\Scripts\python.exe -m nk.make_state --mode TT --course LR MMF
-
-# comparação completa numa pista (especialista + DAgger dos dois modelos + avaliação), ~5-8 h;
-# anota tudo em results/races.csv
-.venv\Scripts\python.exe -m nk.compare MMF
-
-# regerar as tabelas e o gráfico de results/ a partir do CSV
-.venv\Scripts\python.exe -m nk.report
+.venv\Scripts\python.exe -m nk.compare MMF                # ~5-8 h; --shutdown desliga o PC no fim
+.venv\Scripts\python.exe -m nk.report                     # atualiza results/README.md e o gráfico
 ```
 
-Opções úteis:
+Ou passo a passo:
+
+```bash
+# coletar com o especialista (6 emuladores em paralelo, 1 corrida cada)
+.venv\Scripts\python.exe -m nk.collect --states states\TT\LR.st --workers 6 --episodes 1
+
+# treinar (transformer é o padrão; --arch pilotnet para a CNN)
+.venv\Scripts\python.exe -m nk.train --out runs\lr\it0 --epochs 30
+
+# DAgger a partir da iteração 0 já treinada (coleta com a rede dirigindo + retreino)
+.venv\Scripts\python.exe -m nk.dagger --name lr --start 1 --iterations 4 --workers 6 --states states\TT\LR.st
+
+# ver a rede jogar (abre o jogo na tela)
+.venv\Scripts\python.exe -m nk.play --policy runs\lr\it3\model.pt --state states\TT\LR.st --episodes 3
+```
 
 | Comando | Opção | Para quê |
 |---|---|---|
@@ -200,24 +178,19 @@ Opções úteis:
 | `collect` | `--states ...` | savestates de largada; sem a opção, alterna entre todos de `states/TT` |
 | `collect` | `--policy X --beta B` | DAgger: a rede dirige com prob. 1-B e o especialista anota |
 | `collect` | `--max-seconds S` | encerra cada corrida depois de S segundos de jogo |
-| `train` | `--arch pilotnet` | usa a CNN original em vez do transformer |
-| `train` | `--init X` | continua o treino a partir de um checkpoint |
+| `train` | `--arch pilotnet` | usa a CNN em vez do transformer |
+| `train` / `dagger` | `--init X` / `--start N` | continua de um checkpoint / de uma iteração |
 | `play` | `--greedy` | usa a direção mais provável em vez da média ponderada |
 | `play` | `--record` | anota cada corrida em `results/races.csv` |
-| `compare` | `--shutdown` | desliga o PC ao terminar (15 min de folga; cancelar com `shutdown /a`) |
+| `make_state` | `--course LR MMF` | cria largadas só dessas pistas |
 
 Cada treino salva em `runs/<nome>/`: `model.pt` (melhor validação), `last.pt` (última época) e
-`log.jsonl` (métricas por época). `data/` e `runs/` não vão para o git (são grandes).
-
-**Tempo:** o especialista leva ~2 s por decisão (10 decisões por segundo de jogo), então uma corrida
-de 3 voltas na Luigi Raceway (~1000 decisões) leva ~30-45 min por emulador. O treino é rápido: ~37 s
-por época no transformer e ~3 s na PilotNet (RX 7600 XT).
+`log.jsonl` (métricas). `data/` e `runs/` ficam fora do git. O especialista domina o tempo: ~2 s por
+decisão, 10 decisões por segundo de jogo.
 
 ---
 
-## Como tudo funciona
-
-### Visão geral
+## Como funciona
 
 ```
  Python (nk/)                                         Mupen64 (1 ou vários em paralelo)
@@ -229,148 +202,105 @@ por época no transformer e ~3 s na PilotNet (RX 7600 XT).
  └────────────────────────────────┘
 ```
 
-1. **O Python abre o Mupen sozinho** (`nk/emulator.py`), passando a ROM e o script `lua/agent.lua`
-   pela linha de comando. Cada emulador recebe um nome de pipe próprio (variável `NK_PIPE`), então
-   dá para rodar vários ao mesmo tempo.
-2. **O Lua é só um controle remoto.** O `agent.lua` espera um comando, executa e responde uma linha
-   com o estado do jogo lido da memória (progresso na pista, velocidade, posição, cronômetro, pista,
-   modo). Enquanto ele espera, o jogo fica parado: Python e jogo andam juntos, quadro a quadro
-   (*lockstep*), e tudo é determinístico.
-3. **A imagem vem da janela**, capturada pelo Python com Windows Graphics Capture (`nk/capture.py`)
-   e reduzida para 128×96.
-4. **O ambiente de corrida** (`nk/env.py`) carrega um savestate de largada e, a cada **3 frames
-   (10 decisões por segundo)**, aplica a direção escolhida, sempre acelerando. O episódio acaba
-   quando a corrida termina (3 voltas), quando o kart fica 10 s sem avançar ("preso") ou depois de
-   5 minutos.
-5. **O especialista** (`nk/expert.py`) salva o estado atual, testa as 11 direções possíveis (de -1
-   a +1) em UltraFastForward, cada uma virando por 15 frames e depois indo reto por 30, e dá uma
-   nota para cada (progresso + 0,1 × velocidade; quem não avança leva nota muito baixa). Depois volta
-   ao estado salvo.
-6. **A coleta** (`nk/collect.py`) grava, a cada decisão, a imagem, a direção executada, as notas
-   das 11 direções e a telemetria. Para variar os dados, de vez em quando injeta uma direção
-   aleatória por alguns passos. Cada corrida vira um `data/<pista>/<modo>/*.npz`.
-7. **O treino** (`nk/train.py`) carrega todos os episódios direto na memória da GPU e treina a rede
-   para reproduzir as escolhas do especialista, com aumento de dados (pequenos deslocamentos e
-   brilho/contraste) e validação separada por corrida.
-8. **O DAgger** (`nk/dagger.py`) repete coleta e treino, mas a partir da 2ª rodada **quem dirige é
-   a rede** (com probabilidade 1-β, sendo β = 0,5, 0,25, 0,125...), enquanto o especialista anota a
-   resposta certa em cada passo. Assim a rede aprende a sair de situações em que ela mesma se mete,
-   que nunca aparecem quando só o especialista dirige. Se a rede fica 3 s sem avançar, o
-   especialista assume por 2 s para tirar o kart dali, e a coleta cobre a pista inteira.
-9. **Jogar** (`nk/play.py`): a rede dirige sozinha e o script mostra o resultado de cada corrida.
+1. **O Python abre o Mupen** (`nk/emulator.py`) com a ROM e o script `lua/agent.lua`. Cada emulador
+   tem seu próprio par de named pipes, então dá para rodar vários ao mesmo tempo.
+2. **O Lua é só um controle remoto**: executa um comando (rodar N frames com um input,
+   salvar/carregar estado, mudar velocidade) e responde com o estado do jogo lido da memória
+   (progresso, velocidade, posição, cronômetro). Enquanto espera, o jogo fica parado: Python e jogo
+   andam em *lockstep* e tudo é determinístico.
+3. **A imagem vem da janela**, capturada com Windows Graphics Capture (`nk/capture.py`) e reduzida
+   para 128×96.
+4. **O ambiente** (`nk/env.py`) carrega uma largada e, a cada 3 frames (10 decisões por segundo),
+   aplica a direção escolhida, sempre acelerando. A corrida acaba ao completar 3 voltas, se o kart
+   ficar 10 s sem avançar ("preso") ou depois de 5 minutos.
+5. **O especialista** (`nk/expert.py`) testa as 11 direções (de -1 a +1) a partir do estado atual,
+   em UltraFastForward: cada uma vira por 15 frames e depois vai reto por 30. A nota é progresso +
+   0,1 × velocidade (quem não avança leva nota muito baixa).
+6. **A coleta** (`nk/collect.py`) grava, a cada decisão, a imagem, a direção executada, as notas das
+   11 direções e a telemetria (`data/<pista>/<modo>/*.npz`), com perturbações aleatórias ocasionais
+   para variar os estados.
+7. **O treino** (`nk/train.py`) põe todos os episódios na memória da GPU e treina a rede para
+   reproduzir o especialista, com aumento de dados e validação separada por corrida.
+8. **O DAgger** (`nk/dagger.py`) repete coleta e treino com **a rede dirigindo** (prob. 1-β, com
+   β = 0,5, 0,25, 0,125) e o especialista anotando a resposta certa em cada passo. Assim a rede
+   aprende a sair das situações em que ela mesma se mete. Se ela fica 3 s sem avançar, o especialista
+   assume por 2 s para a coleta cobrir a pista inteira.
 
-### Os modelos (`nk/model.py`)
+### Modelos (`nk/model.py`)
 
-Escolhidos com `--arch` no treino; o tipo fica salvo no checkpoint.
-
-| | **transformer** (padrão) | **pilotnet** (CNN do projeto original) |
+| | **transformer** (padrão) | **pilotnet** |
 |---|---|---|
 | Entrada | os últimos 16 frames (1,6 s) | 1 frame, redimensionado para 200×66 |
 | Arquitetura | stem convolucional → 48 tokens por frame → transformer espacial (token CLS) → transformer temporal causal | BatchNorm + 5 convoluções (24, 36, 48 de 5×5/2; 64, 64 de 3×3) + densas 1164-100-50-10, dropout 0,4 |
-| Saída | probabilidade de cada uma das 11 direções; usa a média (ou a mais provável, com `--greedy`) | 1 valor com softsign (direção em [-1, 1]) |
-| Perda | entropia cruzada contra **alvos suaves** (softmax das notas do especialista) | perda "euclidiana" do original contra a melhor direção do especialista |
+| Saída | probabilidade de cada uma das 11 direções (usa a média; a mais provável com `--greedy`) | 1 valor com softsign (direção em [-1, 1]) |
+| Perda | entropia cruzada contra **alvos suaves** (softmax das notas do especialista) | perda "euclidiana" contra a melhor direção do especialista |
 | Parâmetros | 3,0 M | 1,6 M |
-
-O transformer temporal dá à rede noção de movimento e velocidade, que um frame isolado não tem. Os
-alvos suaves ensinam também quais curvas são "quase tão boas" quanto a melhor.
 
 ### Pistas
 
-`states/TT/<pista>.st` são as largadas das 16 pistas em **Time Trial** (sem adversários nem itens
-aleatórios), criadas por `nk/make_state.py`, que navega os menus apertando botões e confere a pista
-pela memória. `states/GP/LR.st` é a Luigi Raceway em Mario GP 50cc.
+`states/TT/<pista>.st` são as largadas das 16 pistas em **Time Trial** (sem adversários nem itens),
+criadas por `nk/make_state.py`, que navega os menus e confere a pista pela memória. Siglas: LR, MMF,
+KTB, KD (Mushroom) · TT, FS, CM, MR (Flower) · WS, SL, RRy, BC (Star) · DK, YV, BB, RRd (Special).
 
-Siglas: LR, MMF, KTB, KD (Mushroom) · TT, FS, CM, MR (Flower) · WS, SL, RRy, BC (Star) ·
-DK, YV, BB, RRd (Special).
+### Estrutura
 
-### Arquivos
-
-| | |
-|---|---|
-| `lua/agent.lua` | controle remoto (protocolo de comandos documentado no topo do arquivo) |
-| `lua/mk.lua` | corrotina + proxy da API do Mupen, savestates |
-| `lua/ipc.lua` | named pipes via `io.open` |
-| `nk/paths.py` | caminhos (lê `config.json`) |
-| `nk/emulator.py` | abre o Mupen e envia comandos |
-| `nk/capture.py` | captura da janela (Windows Graphics Capture) |
-| `nk/pipes.py` | servidor de named pipes |
-| `nk/game.py` | constantes do jogo, botões, conversão direção → analógico, `GameState` |
-| `nk/env.py` | ambiente de corrida |
-| `nk/expert.py` | especialista por busca |
-| `nk/data.py` | formato dos episódios e carregador de sequências |
-| `nk/model.py` | transformer, PilotNet e `PolicyRunner` (uso em tempo real) |
-| `nk/results.py` | formato do `results/races.csv` |
-| `nk/collect.py`, `train.py`, `play.py`, `dagger.py`, `make_state.py`, `compare.py`, `report.py` | comandos |
-| `results/` | resultados: CSV com todas as corridas e relatório gerado |
+```
+lua/        agent.lua (controle remoto), mk.lua (corrotina + savestates), ipc.lua (pipes)
+nk/         emulator, capture, pipes, game, env, expert, data, model, results, paths
+            comandos: collect, train, dagger, play, compare, report, make_state
+states/     largadas (.st)
+results/    races.csv (todas as corridas) e o relatório gerado
+```
 
 ---
 
 ## Resultados
 
-**Todos os resultados ficam em [`results/`](results/)**:
-
-- [`results/races.csv`](results/races.csv): uma linha por corrida, com todas as avaliações das redes
-  e todas as corridas do especialista desde o primeiro teste. O GitHub mostra o CSV como tabela
-  pesquisável.
-- [`results/README.md`](results/README.md): tabelas por pista e o gráfico abaixo, **gerados a partir
-  do CSV** por `python -m nk.report` (não edite à mão).
+**Todos os resultados ficam em [`results/`](results/)**: [`races.csv`](results/races.csv) tem uma
+linha por corrida (avaliações das redes e corridas do especialista, desde o primeiro teste; o GitHub
+mostra como tabela pesquisável), e [`results/README.md`](results/README.md) traz as tabelas por pista
+e o gráfico abaixo, **gerados a partir do CSV** por `nk.report`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="results/times-dark.png">
   <img alt="Tempo médio por iteração em cada pista, PilotNet e Transformer, com a faixa de tempo do especialista" src="results/times-light.png">
 </picture>
 
-Protocolo de cada pista (Time Trial, Mario): 6 corridas do especialista; depois, para cada modelo,
-3 iterações de DAgger a partir dos mesmos dados iniciais (6 corridas por iteração, com a rede
-dirigindo 50%, 75% e 87,5% do tempo); cada iteração é testada com a rede jogando sozinha 3 vezes.
+Protocolo (`nk.compare`): 6 corridas do especialista; para cada modelo, 3 iterações de DAgger a
+partir dos mesmos dados (6 corridas por iteração); cada iteração testada jogando sozinha 3 vezes.
 
 **Conclusões até agora** (Luigi Raceway, Choco Mountain e Moo Moo Farm):
 
 - **Nenhum modelo vence sempre.** Depois do DAgger, o transformer é ~2,8 s mais rápido na Choco
-  Mountain, a PilotNet é ~2 s mais rápida na Moo Moo Farm, e empatam na Luigi Raceway. Os dois
-  terminam no nível do especialista ou abaixo dele em todas.
-- **Só imitação é instável nos dois** (o transformer completou em 2 de 3 pistas, a PilotNet em 1 de 3).
-  **Uma iteração de DAgger bastou** para os dois completarem todas as corridas.
+  Mountain, a PilotNet ~2 s mais rápida na Moo Moo Farm, e empatam na Luigi Raceway. Os dois
+  terminam no nível do especialista ou abaixo dele.
+- **Só imitação é instável** (o transformer completou em 2 de 3 pistas, a PilotNet em 1 de 3);
+  **uma iteração de DAgger bastou** para os dois completarem todas as corridas.
 - A **PilotNet é bem mais barata**: treina ~10x mais rápido e decide em ~2 ms (transformer ~5 ms).
 - A **Mario Raceway** ficou sem comparação: o especialista sai da pista e para de frente para muros,
   e sem marcha a ré não consegue sair.
-- Todos os testes foram de **uma pista por vez**; separar os modelos de verdade pede um modelo
-  treinado em várias pistas e testado em pistas que ele não viu.
 
-### Histórico: o bug do frame extra (13-14/10/2026)
-
-Nos primeiros testes, **toda rede treinada só por imitação travava** numa curva fechada em ~0,5
-volta, e a PilotNet só completou a corrida depois de 3 iterações de DAgger. A causa era um bug na
-coleta: cada vez que o agente salvava um savestate para o especialista, o jogo andava **1 frame
-extra sem nenhum botão** (o Lua esperava o salvamento avançando um frame sem definir o input). Com
-isso, nos dados cada decisão tinha 1 frame "solto" + 3 de ação, e o kart andava mais devagar que
-no `play`, onde não há savestates. A rede chegava nas curvas mais rápido do que tinha aprendido.
-
-Medição: 120 comandos iguais levavam o cronômetro do jogo a 12,13 s sem savestates e a 16,13 s
-salvando a cada passo. A correção (`RUN ... SAVE slot`, que salva no último frame do comando) deixa
-os dois casos idênticos. Esses resultados aparecem como `dados = v1` no CSV; os dados e modelos
-antigos ficaram em `data_v1/` e `runs/_v1/`.
+**Bug do frame extra (corrigido):** nas primeiras coletas, cada savestate salvo para o especialista
+fazia o jogo andar 1 frame sem nenhum botão. Os dados ficavam num ritmo de jogo mais lento que o do
+`play`, e as redes treinadas assim travavam numa curva fechada. Esses resultados aparecem como
+`dados = v1` no CSV; a correção (`RUN ... SAVE slot`, que salva no último frame do comando) gerou os
+dados `v2`.
 
 ---
 
 ## TO DO
 
-- [ ] **Testar todas as pistas.** Faltam 13 das 16 (`python -m nk.compare <PISTA>` em cada uma).
-  - [ ] Implementar **marcha a ré / freio** nas ações do especialista e das redes: sem isso, pistas
-    com muros perto da estrada (Mario Raceway) travam quando o kart para de frente para a parede.
-  - [ ] Treinar **um modelo em várias pistas** e testar em pistas que ele não viu.
-- [ ] **Implementar novos modelos.** Hoje basta criar a classe em `nk/model.py` e registrá-la em
-  `ARCHITECTURES`, mas `nk/train.py` e `nk/dagger.py` ainda escolhem entre "pilotnet" e
-  "transformer" de forma fixa: generalizar para qualquer arquitetura registrada.
-- [ ] **Diminuir o tempo de execução?** Hoje uma comparação numa pista leva ~5-8 h, quase todo no
-  especialista (~2 s por decisão). Ideias a avaliar:
-  - avaliar as 11 direções em paralelo (vários emuladores por decisão) ou com menos direções;
-  - horizonte de busca menor (hoje 15 frames virando + 30 reto);
-  - decidir a cada mais frames na coleta do especialista;
-  - menos épocas no ajuste fino do transformer (~90-130 s por época).
-- [ ] **Implementar aprendizado por reforço (RL).** Ajuste fino com PPO partindo da rede imitada:
-  recompensa de progresso na pista (lida da memória), penalidade para ficar parado ou andar para
-  trás e penalidade de KL para não se afastar demais da rede imitada no começo.
+- [ ] **Testar todas as pistas** (faltam 13 das 16).
+  - [ ] Marcha a ré / freio nas ações, para pistas com muros perto da estrada (Mario Raceway).
+  - [ ] Um modelo treinado em várias pistas, testado em pistas que ele não viu.
+- [ ] **Implementar novos modelos.** Basta criar a classe em `nk/model.py` e registrá-la em
+  `ARCHITECTURES`; falta generalizar `nk/train.py` e `nk/dagger.py`, que ainda escolhem entre
+  "pilotnet" e "transformer" de forma fixa.
+- [ ] **Diminuir o tempo de execução?** Uma comparação leva ~5-8 h, quase todo no especialista.
+  Ideias: avaliar as direções em paralelo ou usar menos direções, horizonte de busca menor, decidir
+  a cada mais frames na coleta, menos épocas no ajuste fino do transformer.
+- [ ] **Implementar aprendizado por reforço (RL):** PPO partindo da rede imitada, com recompensa de
+  progresso na pista e penalidade de KL para não se afastar demais dela no começo.
 
 ---
 
@@ -378,26 +308,25 @@ antigos ficaram em `data_v1/` e `runs/_v1/`.
 
 | Sintoma | Causa e solução |
 |---|---|
-| Mupen mostra "An error has occured" e trava, ou a pista fica preta | Está usando o plugin TAS Video. Selecione o **GLideN64** (Passo 4) |
-| Mupen fecha logo ao abrir o jogo com o GLideN64 | Build errada: use a **PJ64Legacy-WTL-x64** (Passo 3) |
-| Janela de atualização do Mupen em cada emulador | Desligue a verificação automática de atualizações (Passo 4) |
-| Diálogo "Video Unknown Microcode" | Só aparece com o TAS Video; com ele escolha F3DEX. O GLideN64 não pergunta |
-| "Failed to load ... .st" | Savestate de outra versão da ROM: recrie com `nk.make_state` (Passo 9) |
-| `FileNotFoundError: Mupen não encontrado` / `ROM não encontrada` | Ajuste o `config.json` (Passo 8) |
-| "o agent.lua não conectou" | O Mupen não abriu o script: confira se o caminho do projeto existe e se outra cópia do Mupen está travada num diálogo |
-| `miopenStatusUnknownError` / `'type_traits' file not found` (AMD) | Bug do MIOpen no ROCm para Windows; a PilotNet já usa o BatchNorm nativo do PyTorch. Se aparecer em outra camada, me avise |
+| "An error has occured" no Mupen, ou pista preta | Plugin TAS Video em uso: selecione o **GLideN64** (Instalação, passo 4) |
+| Mupen fecha ao abrir o jogo com o GLideN64 | Build errada: use a **PJ64Legacy-WTL-x64** (passo 3) |
+| Janela de atualização em cada emulador | Desligue a verificação de atualizações (passo 4) |
+| Diálogo "Video Unknown Microcode" | Só com o TAS Video (escolha F3DEX); o GLideN64 não pergunta |
+| "Failed to load ... .st" | Savestate de outra versão da ROM: recrie com `nk.make_state` (passo 9) |
+| `Mupen não encontrado` / `ROM não encontrada` | Ajuste o `config.json` (passo 8) |
+| "o agent.lua não conectou" | O Mupen não abriu o script: confira se outra cópia do Mupen está parada num diálogo |
+| `miopenStatusUnknownError` / `'type_traits' file not found` (AMD) | Bug do MIOpen no ROCm para Windows; a PilotNet já usa o BatchNorm nativo do PyTorch para evitá-lo |
 | Aviso `offload-arch.exe ... Unknown command line argument` (AMD) | Inofensivo; acontece quando o caminho do projeto tem espaços |
-| Acentos estranhos no terminal (`Ã©`) | Só exibição: rode `chcp 65001` antes ou defina `PYTHONIOENCODING=utf-8` |
-| Os resultados variam entre execuções | A captura de tela não é sincronizada ao frame exato; a rede pode ver um frame de diferença |
+| Acentos estranhos no terminal (`Ã©`) | Só exibição: `chcp 65001` ou `PYTHONIOENCODING=utf-8` |
+| Resultados variam um pouco entre execuções | A captura de tela não é sincronizada ao frame exato |
 
-### Detalhes técnicos do Mupen 1.5 (para quem for mexer no código)
+**Notas técnicas do Mupen 1.5** (para quem mexer no código):
 
-- A API Lua do Mupen trava se chamada de dentro de uma corrotina (ele identifica o script pelo
-  `lua_State`); `lua/mk.lua` repassa as chamadas para o thread principal.
-- Nenhuma função Lua devolve a imagem do jogo (`emu.screenshot` depende do plugin; `wgui.loadscreen`
-  usa GDI e não pega OpenGL); `PrintWindow` também não serve, porque o Lua bloqueia a thread de
-  interface do Mupen enquanto espera o Python. Por isso a captura usa Windows Graphics Capture.
-- O Mupen bloqueia `os.execute` fora do "Trusted Mode"; nada no Lua precisa dele.
-- Caminhos passados ao Mupen precisam ser absolutos (ele roda na pasta dele); `Emulator.load_file`
-  já converte e confere se o arquivo existe.
+- A API Lua trava se chamada de dentro de uma corrotina; `lua/mk.lua` repassa as chamadas para o
+  thread principal.
+- Nenhuma função Lua devolve a imagem do jogo, e `PrintWindow` trava (o Lua bloqueia a thread de
+  interface do Mupen enquanto espera o Python); por isso a captura usa Windows Graphics Capture.
+- Um `SAVE` avulso faz o jogo andar 1 frame; para salvar sem alterar o ritmo use `RUN ... SAVE slot`.
+- O Mupen bloqueia `os.execute` fora do "Trusted Mode", e caminhos passados a ele precisam ser
+  absolutos (ele roda na própria pasta).
 - O MK64 lê o controle a **30 Hz**; todos os "frames" aqui são input frames.
