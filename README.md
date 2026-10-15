@@ -354,6 +354,40 @@ já só com imitação, completa as 3 corridas, ainda que devagar. Numa pista co
 cegas, o contexto de 16 frames parece ajudar. Os dois terminam abaixo do especialista (132-140 s).
 Log completo: `runs/compare_cm.log`.
 
+### Moo Moo Farm (15/10/2026)
+
+Mesmo protocolo: 6 corridas do especialista (6/6 completas, 99,5-101,2 s) e 3 iterações de DAgger
+para cada modelo. Média e melhor tempo de 3 corridas sozinho:
+
+| | **PilotNet** | | **Transformer** | |
+|---|---|---|---|---|
+| **Iteração** | **completas** | **média / melhor** | **completas** | **média / melhor** |
+| it0 (só imitação) | 0/3 (presa em ~0,55 volta) | — | **3/3** | 101,3 / 101,24 s |
+| it1 | 3/3 | **98,3 / 98,34 s** | 3/3 | 100,4 / 100,44 s |
+| it2 | 3/3 | 98,8 / 98,54 s | 3/3 | 100,3 / 100,34 s |
+| it3 | 3/3 | 99,1 / 99,04 s | 3/3 | 100,6 / 100,54 s |
+
+Aqui a **PilotNet é ~2 s mais rápida** depois do DAgger, enquanto o transformer fica no nível do
+especialista. Por outro lado, só com imitação o transformer já completa a corrida e a PilotNet não.
+
+### Resumo das três pistas
+
+| Pista | Só imitação (it0) | Depois do DAgger (melhor média) | Especialista |
+|---|---|---|---|
+| Luigi Raceway | PilotNet 3/3 · Transformer 0/3 | PilotNet ~126,8 s · Transformer ~126,1 s (empate) | 128-133 s |
+| Choco Mountain | PilotNet 1/3 · Transformer 3/3 (lento) | PilotNet 130,4 s · **Transformer 127,6 s** | 132-140 s |
+| Moo Moo Farm | PilotNet 0/3 · Transformer 3/3 | **PilotNet 98,3 s** · Transformer 100,3 s | 99,5-101 s |
+
+- **Nenhum modelo vence sempre.** Depois do DAgger, cada um ganha numa pista por 2-3 s e empatam na
+  outra. Os dois terminam abaixo ou no nível do especialista em todas.
+- **Só imitação é instável nos dois**: cada modelo falhou em pelo menos uma pista sem DAgger
+  (o transformer completou em 2 de 3 pistas, a PilotNet em 1 de 3). **Uma iteração de DAgger
+  bastou** para os dois completarem as 3 corridas em todas as pistas.
+- **Mario Raceway** foi abandonada: o especialista sai da pista e para de frente para muros, e sem
+  marcha a ré não consegue sair (3 de 6 corridas travaram na 1ª volta).
+- Todos os testes foram de **uma pista por vez**. O próximo passo para separar os modelos de verdade
+  é treinar um único modelo em várias pistas e testar em pistas que ele não viu.
+
 ### Histórico: o bug do frame extra (13-14/10/2026)
 
 Nos primeiros testes, **toda rede treinada só por imitação travava** numa curva fechada em ~0,5
